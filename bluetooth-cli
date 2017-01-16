@@ -6,9 +6,11 @@ from bluefang import bluetooth
 COMMANDS = [
     'connect',
     'disconnect',
-    'register',
-    'unregister',
-    'msg'
+    'info',
+    'msg',
+    'register-agent',
+    'register-profile',
+    'unregister-profile'
 ]
 
 if __name__ == "__main__":
@@ -26,14 +28,18 @@ if __name__ == "__main__":
         bluetooth.connect(arguments[0])
     elif command == 'disconnect':
         bluetooth.disconnect(arguments[0])
-    elif command == 'register':
-        bluetooth.registerProfile(arguments[0], arguments[1])
-    elif command == 'unregister':
-        bluetooth.unregisterProfile(arguments[0])
+    elif command == 'info':
+        bluetooth.info()
     elif command == 'msg':
         if bluetooth.isConnectionEstablished(): #TODO Verify connection is an HID connection?
             bluetooth.sendHIDMessage(arguments)
         else:
             raise Error("Connection must be established before messages can be sent")
+    elif command == 'pair':
+        bluetooth.pair()
+    elif command == 'register-profile':
+        bluetooth.registerProfile(arguments[0])
+    elif command == 'unregister-profile':
+        bluetooth.unregisterProfile(arguments[0])
     else:
         raise Error("Unknown command: %s" % command)
