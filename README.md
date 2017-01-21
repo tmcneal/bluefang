@@ -27,5 +27,5 @@ bluetooth.start_server()
 from bluefang import connection
 bluetooth = connection.Bluefang()
 bluetooth.registerProfile("/omnihub/profile")
-bluetooth.connect("50:63:13:27:BB:BE")
+bluetooth.connect("D0:03:4B:24:57:84")
 ```

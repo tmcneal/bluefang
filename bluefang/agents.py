@@ -2,6 +2,7 @@
 
 import dbus
 import dbus.service
+import time
 
 BLUEZ_SERVICE = "org.bluez"
 BLUEZ_ADAPTER = BLUEZ_SERVICE + ".Adapter1"
@@ -55,7 +56,9 @@ class BluefangAgent(dbus.service.Object):
     def RequestConfirmation(self, device, passkey):
         """Always confirm"""
         print("Pairing with device [{}]".format(device))
-        self.trustDevice(device)
+        time.sleep(2)
+        print("Trusting device....")
+        #self.trustDevice(device)
         return
     
     @dbus.service.method(BLUEZ_AGENT, in_signature="os", out_signature="")
