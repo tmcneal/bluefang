@@ -9,7 +9,9 @@ BLUEZ_ADAPTER = BLUEZ_SERVICE + ".Adapter1"
 BLUEZ_AGENT = BLUEZ_SERVICE + ".Agent1"
 BLUEZ_DEVICE = BLUEZ_SERVICE + ".Device1"
 AGENT_PATH = "/omnihub/agent"
-CAPABILITY = "DisplayOnly"
+CAPABILITY = "NoInputNoOutput" #TODO Experiment with this
+
+# For explanation of in and out signatures, see https://dbus.freedesktop.org/doc/dbus-python/doc/tutorial.html
 
 def getManagedObjects():
     bus = dbus.SystemBus()
@@ -40,9 +42,9 @@ class BluefangAgent(dbus.service.Object):
     def DisplayPinCode(self, device, pincode):
         print("DisplayPinCode invoked")
     
-    @dbus.service.method(BLUEZ_AGENT, in_signature="ouq", out_signature="")
-    def DisplayPasskey(self, device, passkey, entered):
-        print("DisplayPasskey invoked")
+    @dbus.service.method(BLUEZ_AGENT, in_signature="ou", out_signature="")
+    def DisplayPasskey(self, device, passkey):
+        print("PinCode ({}, {})".format(device, pincode))
     
     @dbus.service.method(BLUEZ_AGENT, in_signature="o", out_signature="s")
     def RequestPinCode(self, device):
@@ -51,14 +53,21 @@ class BluefangAgent(dbus.service.Object):
         print("Trying with pin code: [{}]".format(self.pin_code))
         self.trustDevice(device)
         return self.pin_code
+
+    @dbus.service.method("org.bluez.Agent",
+                         in_signature="ou",
+                         out_signature="")
+    def DisplayPasskey(self, device, passkey):
+        print("Passkey ({}, {:06d})".format(device, passkey))
     
     @dbus.service.method(BLUEZ_AGENT, in_signature="ou", out_signature="")
     def RequestConfirmation(self, device, passkey):
         """Always confirm"""
-        print("Pairing with device [{}]".format(device))
+        print("RequestConfirmation (%s, %06d)" % (device, passkey))
         time.sleep(2)
         print("Trusting device....")
-        #self.trustDevice(device)
+        print(device)
+        self.trustDevice(device)
         return
     
     @dbus.service.method(BLUEZ_AGENT, in_signature="os", out_signature="")
@@ -69,8 +78,9 @@ class BluefangAgent(dbus.service.Object):
     
     @dbus.service.method(BLUEZ_AGENT, in_signature="o", out_signature="u")
     def RequestPasskey(self, device):
-        print("RequestPasskey returns 0")
-        return dbus.UInt32(0)
+        print("RequestPasskey")
+        passkey = input("Please enter pass key: ")
+        return dbus.UInt32(passkey)
     
     @dbus.service.method(BLUEZ_AGENT, in_signature="o", out_signature="")
     def RequestAuthorization(self, device):
