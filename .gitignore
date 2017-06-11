@@ -1,3 +1,11 @@
 *.pyc
 __pycache__
-install
+venv
+.tox
+bluefang.egg-info
+.cache
+htmlcov
+.vscode
+.coverage
+build
+dist

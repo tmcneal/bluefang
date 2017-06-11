@@ -1,0 +1,13 @@
+#!/bin/sh
+
+brew install pkgconfig
+brew install dbus-glib
+
+python3 -m venv venv
+source venv/bin/activate
+
+echo "Updating dependencies"
+pip install -r requirements-to-freeze.txt
+
+echo "Writing pinned dependencies to requirements.txt"
+pip freeze > requirements.txt

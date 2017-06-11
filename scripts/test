@@ -1,0 +1,10 @@
+#!/bin/sh
+
+docker build -t "bluefang/rpi3" .
+
+if [ "$1" = "coverage" ]
+then
+    docker run -ti bluefang/rpi3 python3 -m pytest --cov bluefang --verbose
+else
+    docker run -ti bluefang/rpi3 python3 -m pytest --verbose
+fi

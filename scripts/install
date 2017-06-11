@@ -1,0 +1,15 @@
+#!/bin/sh
+
+echo "Installing OS package dependencies"
+brew install pkgconfig
+brew install dbus-glib # Note: After install, be sure to run `brew services start dbus` to configure dbus to run at startup
+brew install automake
+brew install pygobject3 --with-python3
+
+echo "Creating virtualenv"
+python3 -m venv venv
+source venv/bin/activate
+
+echo "Installing Python dependencies"
+pip install -r requirements.txt
+pip install -r requirements_test.txt

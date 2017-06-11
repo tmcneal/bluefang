@@ -4,6 +4,7 @@ from bluetooth import *
 import dbus
 import dbus.service
 
+
 class Profile(dbus.service.Object):
     fd = -1
 
