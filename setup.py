@@ -9,6 +9,7 @@ setup(
     description='Bluetooth and HID utilities for Python 3',
     author='Todd McNeal',
     author_email='todd.mcneal@gmail.com',
+    keywords = ['bluetooth', 'hid', 'l2cap', 'bluez', 'pybluez', 'dbus'],
     url='https://www.github.com/tmcneal/bluefang',
     packages=find_packages(exclude=['scripts', 'tests']),
     install_requires=[
