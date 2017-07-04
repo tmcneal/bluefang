@@ -14,6 +14,8 @@ Bluetooth and HID utilities for Python 3
 
 ## Discovering and pairing with device
 ```python
+import logging
+logging.basicConfig(level=logging.DEBUG)
 import bluefang
 bluetooth = bluefang.Bluefang()
 bluetooth.register_profile("/omnihub/profile")
@@ -38,6 +40,8 @@ You will be prompted to enter a pin code after this.  This should succeed, but s
 error will shown.  If you run the snippet below and reconnect it will complete the pairing process.
 
 ```python
+import logging
+logging.basicConfig(level=logging.DEBUG)
 import bluefang
 bluetooth = bluefang.Bluefang()
 bluetooth.register_profile("/omnihub/profile")
@@ -47,6 +51,8 @@ bluetooth.start_server()
 
 ## Connecting to trusted device
 ```python
+import logging
+logging.basicConfig(level=logging.DEBUG)
 import bluefang
 bluetooth = bluefang.Bluefang()
 bluetooth.register_profile("/omnihub/profile")

@@ -3,6 +3,7 @@ import bluetooth
 from bluetooth import *
 import dbus
 import dbus.service
+import logging
 
 
 class Profile(dbus.service.Object):
@@ -10,27 +11,27 @@ class Profile(dbus.service.Object):
 
     @dbus.service.method("org.bluez.Profile1", in_signature="", out_signature="")
     def Release(self):
-        print("Release")
+        logging.info("Release")
         #mainloop.quit()
 
     @dbus.service.method("org.bluez.Profile1", in_signature="", out_signature="")
     def Cancel(self):
-        print("Cancel")
+        logging.info("Cancel")
 
     @dbus.service.method("org.bluez.Profile1", in_signature="oha{sv}", out_signature="")
     def NewConnection(self, path, fd, properties):
-        print("in new connection")
+        logging.info("in new connection")
         self.fd = fd.take()
-        print("NewConnection(%s, %d)" % (path, self.fd))
+        logging.info("NewConnection(%s, %d)" % (path, self.fd))
         for key in properties.keys():
             if key == "Version" or key == "Features":
-                print(" %s = 0x%04x" % (key, properties[key]))
+                logging.info(" %s = 0x%04x" % (key, properties[key]))
             else:
-                print(" %s = %s" % (key, properties[key]))
+                logging.info(" %s = %s" % (key, properties[key]))
 
     @dbus.service.method("org.bluez.Profile1", in_signature="o", out_signature="")
     def RequestDisconnect(self, path):
-        print("RequestDisconnection(%s)" % (path))
+        logging.info("RequestDisconnection(%s)" % (path))
 
         if(self.fd > 0):
             #os.close(self.fd)

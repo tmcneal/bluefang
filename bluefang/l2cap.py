@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from queue import *
 from threading import Thread
 
@@ -12,14 +13,14 @@ class L2CAPClientThread(Thread):
         self.address = address
 
     def run(self):
-        print("Sending on address: {0}".format(self.address))
+        logging.info("Sending on address: {0}".format(self.address))
         while True:
             command = q.get()
             self.process_command(command)
             q.task_done()
     
     def process_command(self, command):
-        print("Received command: " + command)
+        logging.info("Received command: " + command)
         if command == "left":
             self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 0x50, 0x00, 0x00, 0x00, 0x00, 0x00))))
             self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
@@ -39,7 +40,7 @@ class L2CAPClientThread(Thread):
             self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 0x29, 0x00, 0x00, 0x00, 0x00, 0x00))))
             self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
         else:
-            print("Unknown command: " + command)
+            logging.warning("Unknown command: " + command)
 
 
 class L2CAPServerThread(Thread):
@@ -51,17 +52,17 @@ class L2CAPServerThread(Thread):
         self.address = address
     
     def run(self):
-        print("Receiving on address: {0}".format(self.address))
+        logging.info("Receiving on address: {0}".format(self.address))
         while 1:
             data = self.socket.recv(L2CAPServerThread.SIZE)
             if data:
                 self.process(data)
     
     def process(self, data):
-        print("Received data:")
-        print(':'.join(hex(x) for x in data))
+        logging.debug("Received data:")
+        logging.debug(':'.join(hex(x) for x in data))
         if data[0] == 0x71:
-            print("Server wants to use Report Protocol Mode. Acknowledging.")
+            logging.info("Server wants to use Report Protocol Mode. Acknowledging.")
             self.socket.send(chr(0x00)) # Acknowledge that we will use this protocol mode
             self.socket.send(chr(0xA1) + chr(0x04))
 

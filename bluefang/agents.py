@@ -2,6 +2,7 @@
 
 import dbus
 import dbus.service
+import logging
 import time
 
 BLUEZ_SERVICE = "org.bluez"
@@ -45,15 +46,15 @@ class BluefangAgent(dbus.service.Object):
 
     def start(self):
         dbus.service.Object.__init__(self, dbus.SystemBus(), AGENT_PATH) #This will throw an error if an agent is already running
-        print("Called register as default with capability %s" % CAPABILITY)
+        logging.info("Called register as default with capability %s" % CAPABILITY)
         bus = dbus.SystemBus()
         manager = dbus.Interface(bus.get_object(BLUEZ_SERVICE, "/org/bluez"), "org.bluez.AgentManager1")
         manager.RegisterAgent(AGENT_PATH, CAPABILITY)
         manager.RequestDefaultAgent(AGENT_PATH)
-        print("Starting agent")
+        logging.info("Starting agent")
 
     def stop(self):
-        print("Calling unregister")
+        logging.info("Calling unregister")
         bus = dbus.SystemBus()
         manager = dbus.Interface(bus.get_object(BLUEZ_SERVICE, "/org/bluez"), "org.bluez.AgentManager1")
         manager.UnregisterAgent(AGENT_PATH)
@@ -62,70 +63,70 @@ class BluefangAgent(dbus.service.Object):
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="os", out_signature="")
     def DisplayPinCode(self, device, pincode):
-        print("DisplayPinCode invoked")
+        logging.info("DisplayPinCode invoked")
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="o", out_signature="s")
     def RequestPinCode(self, device):
-        print("Pairing with device [{}]".format(device))
+        logging.info("Pairing with device [{}]".format(device))
         self.pin_code = input("Please enter the pin code: ")
-        print("Trying with pin code: [{}]".format(self.pin_code))
+        logging.info("Trying with pin code: [{}]".format(self.pin_code))
         self.trust_device(device)
         return self.pin_code
 
     @dbus.service.method("org.bluez.Agent", in_signature="ou", out_signature="")
     def DisplayPasskey(self, device, passkey):
-        print("Passkey ({}, {:06d})".format(device, passkey))
+        logging.info("Passkey ({}, {:06d})".format(device, passkey))
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="ou", out_signature="")
     def RequestConfirmation(self, device, passkey):
         """Always confirm"""
-        print("RequestConfirmation (%s, %06d)" % (device, passkey))
+        logging.info("RequestConfirmation (%s, %06d)" % (device, passkey))
         time.sleep(2)
-        print("Trusting device....")
-        print(device)
+        logging.info("Trusting device....")
+        logging.info(device)
         self.trust_device(device)
         return
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="os", out_signature="")
     def AuthorizeService(self, device, uuid):
         """Always authorize"""
-        print("AuthorizeService method invoked")
+        logging.info("AuthorizeService method invoked")
         return
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="o", out_signature="u")
     def RequestPasskey(self, device):
-        print("RequestPasskey")
+        logging.info("RequestPasskey")
         passkey = input("Please enter pass key: ")
         return dbus.UInt32(passkey)
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="o", out_signature="")
     def RequestPairingConsent(self, device):
-        print("RequestPairingConsent")
+        logging.info("RequestPairingConsent")
         return 
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="o", out_signature="")
     def RequestAuthorization(self, device):
         """Always authorize"""
-        print("Authorizing device [{}]".format(self.device))
+        logging.info("Authorizing device [{}]".format(self.device))
         return
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="", out_signature="")
     def Cancel(self):
-        print("Pairing request canceled from device [{}]".format(self.device))
+        logging.info("Pairing request canceled from device [{}]".format(self.device))
 
     def trust_device(self, path):
-        print("Called trust device")
+        logging.info("Called trust device")
         bus = dbus.SystemBus()
         device_properties = dbus.Interface(bus.get_object(BLUEZ_SERVICE, path), "org.freedesktop.DBus.Properties")
         device_properties.Set(BLUEZ_DEVICE, "Trusted", True)
 
     def pair(self):
-        print("Called start pairing")
+        logging.info("Called start pairing")
         bus = dbus.SystemBus()
         adapter_path = findAdapter().object_path
-        print("adapter")
-        print(adapter_path)
+        logging.info("adapter")
+        logging.info(adapter_path)
         adapter = dbus.Interface(bus.get_object(BLUEZ_SERVICE, adapter_path), "org.freedesktop.DBus.Properties")
         adapter.Set(BLUEZ_ADAPTER, "Discoverable", True)
 
-        print("Waiting to pair with device")
+        logging.info("Waiting to pair with device")
