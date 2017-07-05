@@ -5,7 +5,7 @@ import sys
 
 setup(
     name='bluefang',
-    version='0.1.1',
+    version='0.1.2',
     description='Bluetooth and HID utilities for Python 3',
     author='Todd McNeal',
     author_email='todd.mcneal@gmail.com',
