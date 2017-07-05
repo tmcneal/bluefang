@@ -2,6 +2,11 @@
 Bluetooth and HID utilities for Python 3
 
 # Installation
+```
+pip install bluefang
+```
+
+# Install from source
 - Local development: `./scripts/install`
 - As a package: `python setup.py install`
 - If you prefer pip: `pip3 install -r requirements.txt --process-dependency-links`
