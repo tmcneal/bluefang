@@ -1,11 +1,9 @@
 FROM resin/rpi-raspbian:latest
 
 # Install OS dependencies
-RUN apt-get update
-RUN apt-get install -qy python3 python3-pip git build-essential python3-dev pkg-config python3-dbus \
-libdbus-1-dev libical-dev libreadline-dev bluetooth bluez blueman libbluetooth-dev libdbus-glib-1-dev \
-bluetooth bluez blueman libbluetooth-dev python3-gi dbus
-RUN apt-get install -qy dbus-x11
+RUN echo "Installing OS package dependencies"
+RUN ./scripts/install-linux
+
 # For bluez source compilation
 #RUN apt-get install automake libtool libudev-dev
 

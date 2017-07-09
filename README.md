@@ -7,7 +7,7 @@ pip install bluefang
 ```
 
 # Install from source
-- Local development: `./scripts/install`
+- Local development: `./scripts/install-linux`
 - As a package: `python setup.py install`
 - If you prefer pip: `pip3 install -r requirements.txt --process-dependency-links`
 
@@ -19,8 +19,15 @@ pip install bluefang
 
 ## Discovering and pairing with device
 ```python
+# Enable logging
 import logging
-logging.basicConfig(level=logging.DEBUG)
+import sys
+log = logging.getLogger()
+log.setLevel(logging.DEBUG)
+stream = logging.StreamHandler(sys.stdout)
+stream.setLevel(logging.DEBUG)
+log.addHandler(stream)
+
 import bluefang
 bluetooth = bluefang.Bluefang()
 bluetooth.register_profile("/omnihub/profile")
@@ -45,8 +52,15 @@ You will be prompted to enter a pin code after this.  This should succeed, but s
 error will shown.  If you run the snippet below and reconnect it will complete the pairing process.
 
 ```python
+#Enable logging
 import logging
-logging.basicConfig(level=logging.DEBUG)
+import sys
+log = logging.getLogger()
+log.setLevel(logging.DEBUG)
+stream = logging.StreamHandler(sys.stdout)
+stream.setLevel(logging.DEBUG)
+log.addHandler(stream)
+
 import bluefang
 bluetooth = bluefang.Bluefang()
 bluetooth.register_profile("/omnihub/profile")
@@ -56,8 +70,15 @@ bluetooth.start_server()
 
 ## Connecting to trusted device
 ```python
+#Enable logging
 import logging
-logging.basicConfig(level=logging.DEBUG)
+import sys
+log = logging.getLogger()
+log.setLevel(logging.DEBUG)
+stream = logging.StreamHandler(sys.stdout)
+stream.setLevel(logging.DEBUG)
+log.addHandler(stream)
+
 import bluefang
 bluetooth = bluefang.Bluefang()
 bluetooth.register_profile("/omnihub/profile")

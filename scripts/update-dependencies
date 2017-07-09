@@ -1,8 +1,5 @@
 #!/bin/sh
 
-brew install pkgconfig
-brew install dbus-glib
-
 python3 -m venv venv
 source venv/bin/activate
 
