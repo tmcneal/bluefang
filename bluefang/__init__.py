@@ -1,39 +1,41 @@
 # -*- coding: utf-8 -*-
 
-import bluetooth
-import dbus
-import dbus.mainloop.glib
-from gi.repository import GObject as gobject
+import bluetooth # type: ignore
+import dbus # type: ignore
+import dbus.mainloop.glib # type: ignore
+from gi.repository import GObject as gobject # type: ignore
 import logging
 import sys
-import time
+import time # type: ignore
 import collections
+from typing import Any, List
 
 from bluefang import agents
 from bluefang import servicerecords
 from bluefang import profile
 from bluefang import l2cap
 
-BLUEZ_SERVICE = "org.bluez"
-BLUEZ_ADAPTER = BLUEZ_SERVICE + ".Adapter1"
-BLUEZ_AGENT_MANAGER = BLUEZ_SERVICE + ".AgentManager1"
-BLUEZ_DEVICE = BLUEZ_SERVICE + ".Device1"
-BLUEZ_PROFILE_MANAGER = BLUEZ_SERVICE + ".ProfileManager1"
+BLUEZ_SERVICE = "org.bluez" # type: str
+BLUEZ_ADAPTER = BLUEZ_SERVICE + ".Adapter1" # type: str
+BLUEZ_AGENT_MANAGER = BLUEZ_SERVICE + ".AgentManager1" # type: str
+BLUEZ_DEVICE = BLUEZ_SERVICE + ".Device1" # type: str
+BLUEZ_PROFILE_MANAGER = BLUEZ_SERVICE + ".ProfileManager1" # type: str
 
-HID_UUID = "00001124-0000-1000-8000-00805f9b34fb"
-HID_CONTROL_PSM = 17
-HID_INTERRUPT_PSM = 19
+HID_UUID = "00001124-0000-1000-8000-00805f9b34fb" # type: str
+HID_CONTROL_PSM = 17 # type: int
+HID_INTERRUPT_PSM = 19 # type: int
 
 BluetoothDevice = collections.namedtuple('BluetoothDevice', 'name alias address bluetooth_class is_connected is_paired path')
 
+
 class Bluefang():
-    def __init__(self):
+    def __init__(self) -> None:
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-        self.agent = agents.BluefangAgent()
-        self.devices = []
-        self.mainloop = gobject.MainLoop()
+        self.agent = agents.BluefangAgent() # type: Any
+        self.devices = [] # type: List[Any]
+        self.mainloop = gobject.MainLoop() # type: Any
     
-    def info(self):
+    def info(self) -> Any:
         manager = dbus.Interface(dbus.SystemBus().get_object(BLUEZ_SERVICE, "/"), "org.freedesktop.DBus.ObjectManager")
         managed_objects = manager.GetManagedObjects()
 
@@ -46,7 +48,7 @@ class Bluefang():
 
         return adapter
 
-    def connect(self, deviceAddress):
+    def connect(self, deviceAddress: str) -> None:
         """
         Attempt to connect to the given Device.
         """
@@ -85,10 +87,10 @@ class Bluefang():
         interrupt_connection.daemon = True
         interrupt_connection.start()
 
-    def _connection_established(self, changed, invalidated, path):
+    def _connection_established(self, changed: Any, invalidated: Any, path: Any) -> None:
         logging.info("Connection has been established")
 
-    def start_server(self):
+    def start_server(self) -> None:
 
         """connection = BluetoothConnection(
             control_socket_psm=HID_CONTROL_PSM,
@@ -122,18 +124,18 @@ class Bluefang():
         interrupt.daemon = True
         interrupt.start()
 
-    def poll_commands(self):
+    def poll_commands(self) -> None:
         while 1:
             command = input("Enter a command: ")
             self.send_command(command)
 
-    def send_command(self, command):
+    def send_command(self, command: Any) -> None:
         l2cap.q.put(command)
 
-    def disconnect(self, blah):
+    def disconnect(self, blah: Any) -> None:
         logging.info("Disconnected %s" % blah) #TODO implement this later
 
-    def discoverable(self, state):
+    def discoverable(self, state: str) -> None:
         deviceManager = dbus.Interface(dbus.SystemBus().get_object(BLUEZ_SERVICE, "/org/bluez/hci0"), 'org.freedesktop.DBus.Properties')
         if state == "on":
             deviceManager.Set(BLUEZ_ADAPTER, 'Discoverable', True)
@@ -142,17 +144,17 @@ class Bluefang():
         else:
             raise Exception("Unsupported state %s. Supported states: on, off" % state)
 
-    def pair(self, timeout_in_ms=30000):
+    def pair(self, timeout_in_ms: int=30000) -> None:
         #self.agent.start()
         self.agent.pair()
         gobject.timeout_add(timeout_in_ms, self._pair_timeout)
         self.mainloop.run()
 
-    def _pair_timeout(self):
+    def _pair_timeout(self) -> None:
         logging.info("Pair time out")
         self._quit_mainloop()
 
-    def scan(self, timeout_in_ms=30000):
+    def scan(self, timeout_in_ms: int=30000) -> List[Any]:
         adapter = dbus.Interface(dbus.SystemBus().get_object(BLUEZ_SERVICE, "/org/bluez/hci0"), BLUEZ_ADAPTER)
 
         # Retrieve existing known devices
@@ -165,7 +167,7 @@ class Bluefang():
         self.mainloop.run()
         return self.devices
 
-    def _scan_timeout(self):
+    def _scan_timeout(self) -> None:
         logging.info("Device scan time out")
         adapter = dbus.Interface(dbus.SystemBus().get_object(BLUEZ_SERVICE, "/org/bluez/hci0"), BLUEZ_ADAPTER)
         try:
@@ -195,7 +197,7 @@ class Bluefang():
 
         self._quit_mainloop()
 
-    def register_profile(self, profile_path):
+    def register_profile(self, profile_path: str) -> None:
         logging.info("Registering %s" % profile_path)
         profile_manager = dbus.Interface(dbus.SystemBus().get_object(BLUEZ_SERVICE, "/org/bluez"), BLUEZ_PROFILE_MANAGER)
         the_profile = profile.Profile(dbus.SystemBus(), profile_path)
@@ -210,12 +212,12 @@ class Bluefang():
         )
         #TODO this doesn't register from CLI because the profile is unregistered when program exits
 
-    def unregister_profile(self, profilePath):
+    def unregister_profile(self, profilePath: str) -> None:
         logging.info("Unregister %s" % profilePath)
         profileManager = dbus.Interface(dbus.SystemBus().get_object(BLUEZ_SERVICE, "/org/bluez"), BLUEZ_PROFILE_MANAGER)
         profileManager.UnregisterProfile(profilePath)
         #TODO handle the 'does not exist' error more gracefully?
 
-    def _quit_mainloop(self):
+    def _quit_mainloop(self) -> None:
         logging.info("Pair time out")
         self.mainloop.quit()

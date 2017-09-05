@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import dbus
-import dbus.service
+import dbus # type: ignore
+import dbus.service # type: ignore
 import logging
 import time
+from typing import Any
 
-BLUEZ_SERVICE = "org.bluez"
-BLUEZ_ADAPTER = BLUEZ_SERVICE + ".Adapter1"
+BLUEZ_SERVICE = "org.bluez" # type: str
+BLUEZ_ADAPTER = BLUEZ_SERVICE + ".Adapter1" # type: str
 BLUEZ_AGENT = BLUEZ_SERVICE + ".Agent1"
 BLUEZ_DEVICE = BLUEZ_SERVICE + ".Device1"
-AGENT_PATH = "/omnihub/agent"
+AGENT_PATH = "/omnihub/agent" # type: str
 #CAPABILITY = "DisplayYesNo" # This works when pairing with PS3
 #CAPABILITY = "KeyboardOnly" # Doesn't work with Apple TV
 #CAPABILITY = "" # Doesn't work with Apple TV
@@ -20,13 +21,13 @@ CAPABILITY = "DisplayOnly" # This SHOULD work with Apple TV, according to git hi
 # For explanation of in and out signatures, see https://dbus.freedesktop.org/doc/dbus-python/doc/tutorial.html
 
 
-def getManagedObjects():
+def getManagedObjects() -> Any:
     bus = dbus.SystemBus()
     manager = dbus.Interface(bus.get_object(BLUEZ_SERVICE, "/"), "org.freedesktop.DBus.ObjectManager")
     return manager.GetManagedObjects()
 
 
-def findAdapter():
+def findAdapter() -> Any:
     objects = getManagedObjects();
     bus = dbus.SystemBus()
     for path, ifaces in iter(objects.items()):
@@ -41,10 +42,10 @@ def findAdapter():
 class BluefangAgent(dbus.service.Object):
     pin_code = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.pin_code = "0000"
 
-    def start(self):
+    def start(self) -> None:
         dbus.service.Object.__init__(self, dbus.SystemBus(), AGENT_PATH) #This will throw an error if an agent is already running
         logging.info("Called register as default with capability %s" % CAPABILITY)
         bus = dbus.SystemBus()
@@ -53,7 +54,7 @@ class BluefangAgent(dbus.service.Object):
         manager.RequestDefaultAgent(AGENT_PATH)
         logging.info("Starting agent")
 
-    def stop(self):
+    def stop(self) -> None:
         logging.info("Calling unregister")
         bus = dbus.SystemBus()
         manager = dbus.Interface(bus.get_object(BLUEZ_SERVICE, "/org/bluez"), "org.bluez.AgentManager1")
@@ -62,11 +63,11 @@ class BluefangAgent(dbus.service.Object):
             self._connection._unregister_object_path(AGENT_PATH)
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="os", out_signature="")
-    def DisplayPinCode(self, device, pincode):
+    def DisplayPinCode(self, device: Any, pincode: str) -> None:
         logging.info("DisplayPinCode invoked")
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="o", out_signature="s")
-    def RequestPinCode(self, device):
+    def RequestPinCode(self, device: Any) -> str:
         logging.info("Pairing with device [{}]".format(device))
         self.pin_code = input("Please enter the pin code: ")
         logging.info("Trying with pin code: [{}]".format(self.pin_code))
@@ -74,11 +75,11 @@ class BluefangAgent(dbus.service.Object):
         return self.pin_code
 
     @dbus.service.method("org.bluez.Agent", in_signature="ou", out_signature="")
-    def DisplayPasskey(self, device, passkey):
+    def DisplayPasskey(self, device: Any, passkey: int) -> None:
         logging.info("Passkey ({}, {:06d})".format(device, passkey))
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="ou", out_signature="")
-    def RequestConfirmation(self, device, passkey):
+    def RequestConfirmation(self, device: Any, passkey: int) -> None:
         """Always confirm"""
         logging.info("RequestConfirmation (%s, %06d)" % (device, passkey))
         time.sleep(2)
@@ -88,39 +89,39 @@ class BluefangAgent(dbus.service.Object):
         return
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="os", out_signature="")
-    def AuthorizeService(self, device, uuid):
+    def AuthorizeService(self, device: Any, uuid: str) -> None:
         """Always authorize"""
         logging.info("AuthorizeService method invoked")
         return
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="o", out_signature="u")
-    def RequestPasskey(self, device):
+    def RequestPasskey(self, device: Any) -> Any:
         logging.info("RequestPasskey")
         passkey = input("Please enter pass key: ")
         return dbus.UInt32(passkey)
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="o", out_signature="")
-    def RequestPairingConsent(self, device):
+    def RequestPairingConsent(self, device: Any) -> None:
         logging.info("RequestPairingConsent")
         return 
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="o", out_signature="")
-    def RequestAuthorization(self, device):
+    def RequestAuthorization(self, device: Any) -> None:
         """Always authorize"""
         logging.info("Authorizing device [{}]".format(self.device))
         return
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="", out_signature="")
-    def Cancel(self):
+    def Cancel(self) -> None:
         logging.info("Pairing request canceled from device [{}]".format(self.device))
 
-    def trust_device(self, path):
+    def trust_device(self, path: str) -> None:
         logging.info("Called trust device")
         bus = dbus.SystemBus()
         device_properties = dbus.Interface(bus.get_object(BLUEZ_SERVICE, path), "org.freedesktop.DBus.Properties")
         device_properties.Set(BLUEZ_DEVICE, "Trusted", True)
 
-    def pair(self):
+    def pair(self) -> None:
         logging.info("Called start pairing")
         bus = dbus.SystemBus()
         adapter_path = findAdapter().object_path

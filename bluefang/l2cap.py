@@ -3,25 +3,25 @@
 import logging
 from queue import *
 from threading import Thread
-
 from bluefang import commands
+from typing import Any
 
-q = Queue()
+q = Queue() # type: Queue[str]
 
 class L2CAPClientThread(Thread):
-    def __init__(self, socket, address):
+    def __init__(self, socket: Any, address: str) -> None:
         Thread.__init__(self)
         self.socket = socket
         self.address = address
 
-    def run(self):
+    def run(self) -> None:
         logging.info("Sending on address: {0}".format(self.address))
         while True:
             command = q.get()
             self.process_command(command)
             q.task_done()
     
-    def process_command(self, command):
+    def process_command(self, command: str) -> None:
         logging.info("Received command: " + command)
         # Keyboard Reports
         if command == commands.LEFT:
@@ -71,19 +71,19 @@ class L2CAPClientThread(Thread):
 class L2CAPServerThread(Thread):
     SIZE = 500
 
-    def __init__(self, socket, address):
+    def __init__(self, socket: Any, address: str) -> None:
         Thread.__init__(self)
         self.socket = socket
         self.address = address
     
-    def run(self):
+    def run(self) -> None:
         logging.info("Receiving on address: {0}".format(self.address))
         while 1:
             data = self.socket.recv(L2CAPServerThread.SIZE)
             if data:
                 self.process(data)
     
-    def process(self, data):
+    def process(self, data: Any) -> None:
         logging.debug("Received data:")
         logging.debug(':'.join(hex(x) for x in data))
         if data[0] == 0x71:
