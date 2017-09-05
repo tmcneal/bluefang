@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages # type: ignore
 import sys
 
 setup(
     name='bluefang',
-    version='0.1.5',
+    version='0.1.6',
     description='Bluetooth and HID utilities for Python 3',
     author='Todd McNeal',
     author_email='todd.mcneal@gmail.com',
