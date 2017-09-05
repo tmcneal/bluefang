@@ -5,25 +5,18 @@ import dbus # type: ignore
 import dbus.mainloop.glib # type: ignore
 from gi.repository import GObject as gobject # type: ignore
 import logging
+from queue import *
 import sys
 import time # type: ignore
 import collections
-from typing import Any, List
+from typing import Any, List, Optional
 
 from bluefang import agents
+from bluefang.connection import BluefangConnection
 from bluefang import servicerecords
 from bluefang import profile
 from bluefang import l2cap
-
-BLUEZ_SERVICE = "org.bluez" # type: str
-BLUEZ_ADAPTER = BLUEZ_SERVICE + ".Adapter1" # type: str
-BLUEZ_AGENT_MANAGER = BLUEZ_SERVICE + ".AgentManager1" # type: str
-BLUEZ_DEVICE = BLUEZ_SERVICE + ".Device1" # type: str
-BLUEZ_PROFILE_MANAGER = BLUEZ_SERVICE + ".ProfileManager1" # type: str
-
-HID_UUID = "00001124-0000-1000-8000-00805f9b34fb" # type: str
-HID_CONTROL_PSM = 17 # type: int
-HID_INTERRUPT_PSM = 19 # type: int
+from bluefang.constants import *
 
 BluetoothDevice = collections.namedtuple('BluetoothDevice', 'name alias address bluetooth_class is_connected is_paired path')
 
@@ -48,7 +41,7 @@ class Bluefang():
 
         return adapter
 
-    def connect(self, deviceAddress: str) -> None:
+    def connect(self, device_address: str) -> Optional[BluefangConnection]:
         """
         Attempt to connect to the given Device.
         """
@@ -66,26 +59,10 @@ class Bluefang():
             arg0="org.bluez.Device1"
         )
 
-        manager = dbus.Interface(dbus.SystemBus().get_object(BLUEZ_SERVICE, "/"), "org.freedesktop.DBus.ObjectManager")
-        #device = manager.GetManagedObjects()['/org/bluez/hci0'] # Requires correct permissions in /etc/dbus-1/system-local.conf
-        theDevice = next((x for x in self.devices if x.address == deviceAddress), None)
-        if theDevice is None:
-            raise Exception("Unable to find device %s. Try scanning first." % deviceAddress)
+        connection = BluefangConnection(device_address, self.devices)
+        connection.connect()
 
-        device = dbus.Interface(dbus.SystemBus().get_object(BLUEZ_SERVICE, theDevice.path), BLUEZ_DEVICE)
-        control_socket = bluetooth.BluetoothSocket(bluetooth.L2CAP)
-        control_socket.connect((deviceAddress, HID_CONTROL_PSM))
-        logging.info("Connected! Spawning control thread")
-        control_connection = l2cap.L2CAPServerThread(control_socket, deviceAddress)
-        control_connection.daemon = True
-        control_connection.start()
-
-        interrupt_socket = bluetooth.BluetoothSocket(bluetooth.L2CAP)
-        interrupt_socket.connect((deviceAddress, HID_INTERRUPT_PSM))
-        logging.info("Connected! Spawning interrupt thread")
-        interrupt_connection = l2cap.L2CAPClientThread(interrupt_socket, deviceAddress)
-        interrupt_connection.daemon = True
-        interrupt_connection.start()
+        return connection
 
     def _connection_established(self, changed: Any, invalidated: Any, path: Any) -> None:
         logging.info("Connection has been established")
@@ -120,20 +97,9 @@ class Bluefang():
         control.daemon = True
         control.start()
 
-        interrupt = l2cap.L2CAPClientThread(interrupt_socket, interrupt_address)
+        interrupt = l2cap.L2CAPClientThread(interrupt_socket, interrupt_address, Queue())
         interrupt.daemon = True
         interrupt.start()
-
-    def poll_commands(self) -> None:
-        while 1:
-            command = input("Enter a command: ")
-            self.send_command(command)
-
-    def send_command(self, command: Any) -> None:
-        l2cap.q.put(command)
-
-    def disconnect(self, blah: Any) -> None:
-        logging.info("Disconnected %s" % blah) #TODO implement this later
 
     def discoverable(self, state: str) -> None:
         deviceManager = dbus.Interface(dbus.SystemBus().get_object(BLUEZ_SERVICE, "/org/bluez/hci0"), 'org.freedesktop.DBus.Properties')

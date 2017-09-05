@@ -6,20 +6,19 @@ from threading import Thread
 from bluefang import commands
 from typing import Any
 
-q = Queue() # type: Queue[str]
-
 class L2CAPClientThread(Thread):
-    def __init__(self, socket: Any, address: str) -> None:
+    def __init__(self, socket: Any, address: str, q: Queue) -> None:
         Thread.__init__(self)
         self.socket = socket
         self.address = address
+        self.q = q
 
     def run(self) -> None:
         logging.info("Sending on address: {0}".format(self.address))
         while True:
-            command = q.get()
+            command = self.q.get()
             self.process_command(command)
-            q.task_done()
+            self.q.task_done()
     
     def process_command(self, command: str) -> None:
         logging.info("Received command: " + command)

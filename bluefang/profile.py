@@ -10,17 +10,18 @@ from typing import Any
 class Profile(dbus.service.Object):
     fd = -1
 
+    # dbus decorated methods can't have type annotations. See https://github.com/smurfix/flask-script/issues/169
     @dbus.service.method("org.bluez.Profile1", in_signature="", out_signature="")
-    def Release(self) -> None:
+    def Release(self):
         logging.info("Release")
         #mainloop.quit()
 
     @dbus.service.method("org.bluez.Profile1", in_signature="", out_signature="")
-    def Cancel(self) -> None:
+    def Cancel(self):
         logging.info("Cancel")
 
     @dbus.service.method("org.bluez.Profile1", in_signature="oha{sv}", out_signature="")
-    def NewConnection(self, path: Any, fd: Any, properties: Any) -> None:
+    def NewConnection(self, path, fd, properties):
         logging.info("in new connection")
         self.fd = fd.take()
         logging.info("NewConnection(%s, %d)" % (path, self.fd))
@@ -31,7 +32,7 @@ class Profile(dbus.service.Object):
                 logging.info(" %s = %s" % (key, properties[key]))
 
     @dbus.service.method("org.bluez.Profile1", in_signature="o", out_signature="")
-    def RequestDisconnect(self, path: Any) -> None:
+    def RequestDisconnect(self, path):
         logging.info("RequestDisconnection(%s)" % (path))
 
         if(self.fd > 0):

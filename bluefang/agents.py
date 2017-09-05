@@ -63,11 +63,11 @@ class BluefangAgent(dbus.service.Object):
             self._connection._unregister_object_path(AGENT_PATH)
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="os", out_signature="")
-    def DisplayPinCode(self, device: Any, pincode: str) -> None:
+    def DisplayPinCode(self, device, pincode):
         logging.info("DisplayPinCode invoked")
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="o", out_signature="s")
-    def RequestPinCode(self, device: Any) -> str:
+    def RequestPinCode(self, device):
         logging.info("Pairing with device [{}]".format(device))
         self.pin_code = input("Please enter the pin code: ")
         logging.info("Trying with pin code: [{}]".format(self.pin_code))
@@ -75,11 +75,11 @@ class BluefangAgent(dbus.service.Object):
         return self.pin_code
 
     @dbus.service.method("org.bluez.Agent", in_signature="ou", out_signature="")
-    def DisplayPasskey(self, device: Any, passkey: int) -> None:
+    def DisplayPasskey(self, device, passkey):
         logging.info("Passkey ({}, {:06d})".format(device, passkey))
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="ou", out_signature="")
-    def RequestConfirmation(self, device: Any, passkey: int) -> None:
+    def RequestConfirmation(self, device, passkey):
         """Always confirm"""
         logging.info("RequestConfirmation (%s, %06d)" % (device, passkey))
         time.sleep(2)
@@ -89,30 +89,30 @@ class BluefangAgent(dbus.service.Object):
         return
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="os", out_signature="")
-    def AuthorizeService(self, device: Any, uuid: str) -> None:
+    def AuthorizeService(self, device, uuid):
         """Always authorize"""
         logging.info("AuthorizeService method invoked")
         return
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="o", out_signature="u")
-    def RequestPasskey(self, device: Any) -> Any:
+    def RequestPasskey(self, device):
         logging.info("RequestPasskey")
         passkey = input("Please enter pass key: ")
         return dbus.UInt32(passkey)
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="o", out_signature="")
-    def RequestPairingConsent(self, device: Any) -> None:
+    def RequestPairingConsent(self, device):
         logging.info("RequestPairingConsent")
         return 
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="o", out_signature="")
-    def RequestAuthorization(self, device: Any) -> None:
+    def RequestAuthorization(self, device):
         """Always authorize"""
         logging.info("Authorizing device [{}]".format(self.device))
         return
 
     @dbus.service.method(BLUEZ_AGENT, in_signature="", out_signature="")
-    def Cancel(self) -> None:
+    def Cancel(self):
         logging.info("Pairing request canceled from device [{}]".format(self.device))
 
     def trust_device(self, path: str) -> None:
