@@ -6,22 +6,84 @@ from threading import Thread
 from bluefang import commands
 from typing import Any
 
+
+def binary(str: str) -> int:
+    return int(str.replace(' ', ''), 2)
+
+
+keyboard_keymap = {
+    'a': 4,
+    'b': 5,
+    'c': 6,
+    'd': 7,
+    'e': 8,
+    'f': 9,
+    'g': 10,
+    'h': 11,
+    'i': 12,
+    'j': 13,
+    'k': 14,
+    'l': 15,
+    'm': 16,
+    'n': 17,
+    'o': 18,
+    'p': 19,
+    'q': 20,
+    'r': 21,
+    's': 22,
+    't': 23,
+    'u': 24,
+    'v': 25,
+    'w': 26,
+    'x': 27,
+    'y': 28,
+    'z': 29,
+    '1': 30,
+    '2': 31,
+    '3': 32,
+    '4': 33,
+    '5': 34,
+    '6': 35,
+    '7': 36,
+    '8': 37,
+    '9': 38,
+    '0': 39
+}
+
+# This corresponds to the HID descriptor that is exposed via our SDP record.  The HID descriptor maps each supported
+# command to a bit in a 5-byte HID consumer report.  See servicerecords.py for details.
+# The values in the dict below correspond to 3rd and 4th byte in the 5-byte report.
+consumer_keymap = {
+    'next_track': (binary('0100 0000'), 0x00),
+    'play_pause': (binary('0010 0000'), 0x00),
+    'prev_track': (binary('0001 0000'), 0x00),
+    'home': (binary('0000 0001'), 0x00),
+    'pause': (0x00, binary('0001 0000')),
+    'play': (0x00, binary('0000 1000'))
+}
+
 class L2CAPClientThread(Thread):
     def __init__(self, socket: Any, address: str, q: Queue) -> None:
         Thread.__init__(self)
-        self.socket = socket
-        self.address = address
-        self.q = q
+        self.socket = socket # type: Any
+        self.address = address # type: str
+        self.q = q # type: Queue
 
     def run(self) -> None:
         logging.info("Sending on address: {0}".format(self.address))
         while True:
             command = self.q.get()
             self.process_command(command)
+            #self.process_raw(command)
             self.q.task_done()
     
+    def process_raw(self, command: Any) -> None:
+        self.socket.send(bytes(bytearray(command)))
+
     def process_command(self, command: str) -> None:
-        logging.info("Received command: " + command)
+        global consumer_keymap
+        global keyboard_keymap
+        logging.info("Received command: {}".format(command))
         # Keyboard Reports
         if command == commands.LEFT:
             self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 0x50, 0x00, 0x00, 0x00, 0x00, 0x00))))
@@ -50,21 +112,27 @@ class L2CAPClientThread(Thread):
         elif command == commands.VOLUME_DOWN:
             self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 0x81, 0x00, 0x00, 0x00, 0x00, 0x00))))
             self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
+        elif command == 'delete':
+            self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 42, 0x00, 0x00, 0x00, 0x00, 0x00))))
+            self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
+        elif command == 'space':
+            self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 44, 0x00, 0x00, 0x00, 0x00, 0x00))))
+            self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
+        elif command == 'comma':
+            self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 54, 0x00, 0x00, 0x00, 0x00, 0x00))))
+            self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
+        elif command == 'period':
+            self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 55, 0x00, 0x00, 0x00, 0x00, 0x00))))
+            self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
+        elif command in keyboard_keymap:
+            self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, keyboard_keymap[command], 0x00, 0x00, 0x00, 0x00, 0x00))))
+            self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
         # Consumer Reports
-        elif command == commands.PLAY:
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 0xB0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
-        elif command == commands.PAUSE:
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 0xB1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
-        elif command == commands.NEXT_TRACK:
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 0xB5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
-        elif command == commands.PREV_TRACK:
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 0xB6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
+        elif command in consumer_keymap:
+            self.socket.send(bytes(bytearray((0xA1, 0x03, consumer_keymap[command][0], consumer_keymap[command][1], 0x00))))
+            self.socket.send(bytes(bytearray((0xA1, 0x03, 0x00, 0x00, 0x00))))
         else:
-            logging.warning("Unknown command: " + command)
+            logging.warning("Unknown command: {}".format(command))
 
 
 class L2CAPServerThread(Thread):

@@ -83,7 +83,7 @@ import bluefang
 bluetooth = bluefang.Bluefang()
 bluetooth.register_profile("/omnihub/profile")
 bluetooth.scan(5000)
-bluetooth.connect("D0:03:4B:24:57:84")
+device = bluetooth.connect("D0:03:4B:24:57:84")
 ```
 
 # HID Descriptor

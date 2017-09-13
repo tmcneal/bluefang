@@ -55,5 +55,8 @@ class BluefangConnection:
 
         self.q.put(command)
 
+    def send_raw(self, command: Any) -> None:
+        self.q.put(command)
+
     def disconnect(self, blah: Any) -> None:
         raise Exception("TODO Implement this")

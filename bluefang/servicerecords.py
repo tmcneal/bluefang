@@ -1,5 +1,82 @@
 # -*- coding: utf-8 -*-
 
+def hid_description() -> str:
+    """
+    The HID descriptor that is exposed via our SDP record.  We support both Keyboard and Consumer Control reports.
+
+    TODO: Fast forward and Rewind are not working on Apple TV
+    TODO: All consumer control reports are not working on PS3
+
+    HID Descriptor parser: http://eleccelerator.com/usbdescreqparser/
+    Apple Keyboard HID Descriptor: http://www.avernus.com/~gadams/hardware/keyboard/apple-built-in-keyboard-usb-probe.txt
+    PS2/3/4 HID Descriptor: https://github.com/torvalds/linux/blob/master/drivers/hid/hid-sony.c
+    """
+    descriptor_bytes = [
+        0x05, 0x01,        # Usage Page (Generic Desktop Ctrls)
+        0x09, 0x06,        # Usage (Keyboard)
+        0xA1, 0x01,        # Collection (Application)
+        0x85, 0x01,        #   Report ID (1)
+        0x75, 0x01,        #   Report Size (1)
+        0x95, 0x08,        #   Report Count (8)
+        0x05, 0x07,        #   Usage Page (Kbrd/Keypad)
+        0x19, 0xE0,        #   Usage Minimum (0xE0)
+        0x29, 0xE7,        #   Usage Maximum (0xE7)
+        0x15, 0x00,        #   Logical Minimum (0)
+        0x25, 0x01,        #   Logical Maximum (1)
+        0x81, 0x02,        #   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+        0x95, 0x01,        #   Report Count (1)
+        0x75, 0x08,        #   Report Size (8)
+        0x81, 0x03,        #   Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+        0x95, 0x05,        #   Report Count (5)
+        0x75, 0x01,        #   Report Size (1)
+        0x05, 0x08,        #   Usage Page (LEDs)
+        0x19, 0x01,        #   Usage Minimum (Num Lock)
+        0x29, 0x05,        #   Usage Maximum (Kana)
+        0x91, 0x02,        #   Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+        0x95, 0x01,        #   Report Count (1)
+        0x75, 0x03,        #   Report Size (3)
+        0x91, 0x03,        #   Output (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+        0x95, 0x06,        #   Report Count (6)
+        0x75, 0x08,        #   Report Size (8)
+        0x15, 0x00,        #   Logical Minimum (0)
+        0x26, 0xFF, 0x00,  #   Logical Maximum (255)
+        0x05, 0x07,        #   Usage Page (Kbrd/Keypad)
+        0x19, 0x00,        #   Usage Minimum (0x00)
+        0x29, 0xFF,        #   Usage Maximum (0xFF)
+        0x81, 0x00,        #   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+        0xC0,              # End Collection
+        0x05, 0x0C,        # Usage Page (Consumer)
+        0x09, 0x01,        # Usage (Consumer Control)
+        0xA1, 0x01,        # Collection (Application)
+        0x85, 0x03,        #   Report ID (3)
+        0x15, 0x00,        #   Logical Minimum (0)
+        0x25, 0x01,        #   Logical Maximum (1)
+        0x09, 0xB4,        #   Usage (Rewind)
+        0x09, 0xB3,        #   Usage (Fast Forward)
+        0x81, 0x22,        #   Input (Data,Var,Abs,No Wrap,Linear,No Preferred State,No Null Position)
+        0x95, 0x02,        #   Report Count (2)
+        0x75, 0x01,        #   Report Size (1)
+        0x0A, 0x23, 0x02,  #   Usage (AC Home)
+        0x09, 0xB8,        #   Usage (Eject)
+        0x09, 0xB6,        #   Usage (Scan Previous Track)
+        0x09, 0xCD,        #   Usage (Play/Pause)
+        0x09, 0xB5,        #   Usage (Scan Next Track)
+        0x09, 0xE2,        #   Usage (Mute)
+        0x09, 0xEA,        #   Usage (Volume Decrement)
+        0x09, 0xE9,        #   Usage (Volume Increment)
+        0x09, 0x30,        #   Usage (Power)
+        0x09, 0xB0,        #   Usage (Play)
+        0x09, 0xB1,        #   Usage (Pause)
+        0x81, 0x02,        #   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+        0x95, 0x01,        #   Report Count (1)
+        0x75, 0x0B,        #   Report Size (11)
+        0x81, 0x03,        #   Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+        0xC0,              # End Collection
+    ]
+
+    return "".join("{:02x}".format(i) for i in descriptor_bytes)
+
+
 HID_PROFILE = """
 <?xml version="1.0" encoding="UTF-8" ?>
 
@@ -60,7 +137,7 @@ HID_PROFILE = """
     <text value="Remote control proxy" />
   </attribute>
   <attribute id="0x0102">
-    <text value="Raspberry Pi" />
+    <text value="Omnihub" />
   </attribute>
   <attribute id="0x0200"> <!-- HIDDeviceReleaseNumber (Deprecated) -->
     <uint16 value="0x0100" />
@@ -69,7 +146,7 @@ HID_PROFILE = """
     <uint16 value="0x0111" /> 
   </attribute>
   <attribute id="0x0202"> <!-- HIDDeviceSubclass -->
-    <uint8 value="0x4c" />
+    <uint8 value="0x4c" /> <!-- TODO Should be remote control 0x0b? https://www.silabs.com/documents/login/application-notes/AN1032-HID-BT.pdf -->
   </attribute>
   <attribute id="0x0203"> <!-- HIDCountryCode -->
     <uint8 value="0x00" />
@@ -84,7 +161,7 @@ HID_PROFILE = """
     <sequence>
       <sequence>
         <uint8 value="0x22" />
-        <text encoding="hex" value="05010906a101850175019508050719e029e715002501810295017508810395057501050819012905910295017503910395067508150026ff000507190029ff8100c0050c0901a1018503150025017501950b0a23020a21020ab10109b809b609cd09b509e209ea09e9093009B009B181029501750d8103c0" />
+        <text encoding="hex" value="{}" />
       </sequence>
     </sequence>
   </attribute>
