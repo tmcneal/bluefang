@@ -1,5 +1,64 @@
 # -*- coding: utf-8 -*-
 
+def hid_description() -> str:
+    """
+    see http://eleccelerator.com/usbdescreqparser/
+    """
+    descriptor_bytes = [
+        0x05, 0x01, # Usage Page (Generic Desktop Ctrls)  
+        0x09, 0x06, # Usage (Keyboard)
+        0xA1, 0x01, # Collection (Application)
+            0x85, 0x01, # Report ID (1)
+            0x05, 0x07, # Usage Page (Kbrd/Keypad)  
+            0x75, 0x01, # Report Count (1)  
+            0x95, 0x08, # Report Size (8)  
+            0x19, 0xE0, # Usage Minimum (0xE0)  
+            0x29, 0xE7, # Usage Maximum (0xE7)  
+            0x15, 0x00, # Logical Minimum (0)  
+            0x25, 0x01, # Logical Maximum (1)  
+            0x81, 0x02, # Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)  
+            0x95, 0x01, # Report Count (1)  
+            0x75, 0x08, # Report Size (8)  
+            0x15, 0x00, # Logical Minimum (0)  
+            0x25, 0x64, # Logical Maximum (100)  
+            0x05, 0x07, # Usage Page (Kbrd/Keypad)  
+            0x19, 0x00, # Usage Minimum (0x00)  
+            0x29, 0x65, # Usage Maximum (0x65)  
+            0x81, 0x00, # Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)  
+        0xC0,       # End Collection
+
+        0x05, 0x0C, # Usage Page (Consumer)
+        0x09, 0x01, # Usage (Consumer Control)
+        0xA1, 0x01, # Collection (Application)  
+            0x85, 0x03, # Report ID (3)  
+            0x05, 0x0C, # Usage Page (Consumer)  
+            0x15, 0x00, # Logical Minimum (0)  
+            0x25, 0x01, # Logical Maximum (1)
+            0x09, 0xcd, # Usage (Play/Pause)
+            0x09, 0xe2, # Usage (Mute)
+            0x09, 0xea, # Usage (Volume Decrement)
+            0x09, 0xe9, # Usage (Volume Increment)
+            0x09, 0x30, # Usage (Power)
+            0x09, 0xB0, # Usage (Play)
+            0x09, 0xB1, # Usage (Pause)
+            0x09, 0xB2, # Usage (Record)
+            0x09, 0xB3, # Usage (Fast Forward)
+            0x09, 0xB4, # Usage (Rewind)
+            0x09, 0xb5, # Usage (Scan Next Track)
+            0x09, 0xb6, # Usage (Scan Previous Track)
+            0x09, 0xB7, # Usage (Stop)
+            0x09, 0xb8, # Usage (Eject)
+            0x15, 0x01, # Logical Min (1)
+            0x25, 0x0E, # Logical Max (14)
+            0x75, 0x04, # Report Size (4)
+            0x95, 0x01, # Report Count (1)
+            0x81, 0x00, # Input (Data, Ary, Abs)
+        0xC0        # End Collection
+    ]
+
+    return "".join("{:02x}".format(i) for i in descriptor_bytes)
+
+
 HID_PROFILE = """
 <?xml version="1.0" encoding="UTF-8" ?>
 
@@ -60,7 +119,7 @@ HID_PROFILE = """
     <text value="Remote control proxy" />
   </attribute>
   <attribute id="0x0102">
-    <text value="Raspberry Pi" />
+    <text value="Omnihub" />
   </attribute>
   <attribute id="0x0200"> <!-- HIDDeviceReleaseNumber (Deprecated) -->
     <uint16 value="0x0100" />
@@ -69,7 +128,7 @@ HID_PROFILE = """
     <uint16 value="0x0111" /> 
   </attribute>
   <attribute id="0x0202"> <!-- HIDDeviceSubclass -->
-    <uint8 value="0x4c" />
+    <uint8 value="0x4c" /> <!-- TODO Should be remote control 0x0b? https://www.silabs.com/documents/login/application-notes/AN1032-HID-BT.pdf -->
   </attribute>
   <attribute id="0x0203"> <!-- HIDCountryCode -->
     <uint8 value="0x00" />
@@ -84,7 +143,7 @@ HID_PROFILE = """
     <sequence>
       <sequence>
         <uint8 value="0x22" />
-        <text encoding="hex" value="05010906a101850175019508050719e029e715002501810295017508810395057501050819012905910295017503910395067508150026ff000507190029ff8100c0050c0901a1018503150025017501950b0a23020a21020ab10109b809b609cd09b509e209ea09e9093009B009B181029501750d8103c0" />
+        <text encoding="hex" value="{}" />
       </sequence>
     </sequence>
   </attribute>
