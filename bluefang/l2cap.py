@@ -69,11 +69,7 @@ class L2CAPClientThread(Thread):
             self.q.task_done()
     
     def process_raw(self, command: Any) -> None:
-        key_down = command[0]
-        key_up = command[1]
-
-        self.socket.send(bytes(bytearray(key_down)))
-        self.socket.send(bytes(bytearray(key_up)))
+        self.socket.send(bytes(bytearray(command)))
 
     def process_command(self, command: str) -> None:
         global consumer_keymap
