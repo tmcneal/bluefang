@@ -2,8 +2,14 @@
 
 def hid_description() -> str:
     """
-    see http://eleccelerator.com/usbdescreqparser/
-    apple keyboard hid descriptor http://www.avernus.com/~gadams/hardware/keyboard/apple-built-in-keyboard-usb-probe.txt
+    The HID descriptor that is exposed via our SDP record.  We support both Keyboard and Consumer Control reports.
+
+    TODO: Fast forward and Rewind are not working on Apple TV
+    TODO: All consumer control reports are not working on PS3
+
+    HID Descriptor parser: http://eleccelerator.com/usbdescreqparser/
+    Apple Keyboard HID Descriptor: http://www.avernus.com/~gadams/hardware/keyboard/apple-built-in-keyboard-usb-probe.txt
+    PS2/3/4 HID Descriptor: https://github.com/torvalds/linux/blob/master/drivers/hid/hid-sony.c
     """
     descriptor_bytes = [
         0x05, 0x01,        # Usage Page (Generic Desktop Ctrls)
@@ -47,9 +53,9 @@ def hid_description() -> str:
         0x25, 0x01,        #   Logical Maximum (1)
         0x09, 0xB4,        #   Usage (Rewind)
         0x09, 0xB3,        #   Usage (Fast Forward)
-        0x81, 0x06,        #   Input (Data,Var,Rel,No Wrap,Linear,Preferred State,No Null Position)
-        0x95, 0x01,        #   Report Count (1)
-        0x75, 0x02,        #   Report Size (2)
+        0x81, 0x22,        #   Input (Data,Var,Abs,No Wrap,Linear,No Preferred State,No Null Position)
+        0x95, 0x02,        #   Report Count (2)
+        0x75, 0x01,        #   Report Size (1)
         0x0A, 0x23, 0x02,  #   Usage (AC Home)
         0x09, 0xB8,        #   Usage (Eject)
         0x09, 0xB6,        #   Usage (Scan Previous Track)

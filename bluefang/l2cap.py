@@ -6,6 +6,11 @@ from threading import Thread
 from bluefang import commands
 from typing import Any
 
+
+def binary(str: str) -> int:
+    return int(str.replace(' ', ''), 2)
+
+
 keyboard_keymap = {
     'a': 4,
     'b': 5,
@@ -42,30 +47,34 @@ keyboard_keymap = {
     '7': 36,
     '8': 37,
     '9': 38,
-    '0': 39,
-    'rewind': 241,
-    'fast_forward': 242,
-    'play_pause': 232,
-    'home': 74,
-    'back': 241
+    '0': 39
 }
 
+# This corresponds to the HID descriptor that is exposed via our SDP record.  The HID descriptor maps each supported
+# command to a bit in a 5-byte HID consumer report.  See servicerecords.py for details.
+# The values in the dict below correspond to 3rd and 4th byte in the 5-byte report.
 consumer_keymap = {
+    'next_track': (binary('0100 0000'), 0x00),
+    'play_pause': (binary('0010 0000'), 0x00),
+    'prev_track': (binary('0001 0000'), 0x00),
+    'home': (binary('0000 0001'), 0x00),
+    'pause': (0x00, binary('0001 0000')),
+    'play': (0x00, binary('0000 1000'))
 }
 
 class L2CAPClientThread(Thread):
     def __init__(self, socket: Any, address: str, q: Queue) -> None:
         Thread.__init__(self)
-        self.socket = socket
-        self.address = address
-        self.q = q
+        self.socket = socket # type: Any
+        self.address = address # type: str
+        self.q = q # type: Queue
 
     def run(self) -> None:
         logging.info("Sending on address: {0}".format(self.address))
         while True:
             command = self.q.get()
-            #self.process_command(command)
-            self.process_raw(command)
+            self.process_command(command)
+            #self.process_raw(command)
             self.q.task_done()
     
     def process_raw(self, command: Any) -> None:
@@ -74,7 +83,7 @@ class L2CAPClientThread(Thread):
     def process_command(self, command: str) -> None:
         global consumer_keymap
         global keyboard_keymap
-        logging.info("Received command: " + command)
+        logging.info("Received command: {}".format(command))
         # Keyboard Reports
         if command == commands.LEFT:
             self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 0x50, 0x00, 0x00, 0x00, 0x00, 0x00))))
@@ -119,24 +128,11 @@ class L2CAPClientThread(Thread):
             self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, keyboard_keymap[command], 0x00, 0x00, 0x00, 0x00, 0x00))))
             self.socket.send(bytes(bytearray((0xA1, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
         # Consumer Reports
-        # Consumer Reports
-        elif command == commands.PLAY:
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 0xB0))))
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 0x00))))
-        elif command == commands.PAUSE:
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 0xB1))))
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 0x00))))
-        elif command == commands.NEXT_TRACK:
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 0xB5))))
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 0x00))))
-        elif command == commands.PREV_TRACK:
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 0xB6))))
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 0x00))))
         elif command in consumer_keymap:
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 1, consumer_keymap[command], 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
-            self.socket.send(bytes(bytearray((0xA1, 0x03, 1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))))
+            self.socket.send(bytes(bytearray((0xA1, 0x03, consumer_keymap[command][0], consumer_keymap[command][1], 0x00))))
+            self.socket.send(bytes(bytearray((0xA1, 0x03, 0x00, 0x00, 0x00))))
         else:
-            logging.warning("Unknown command: " + command)
+            logging.warning("Unknown command: {}".format(command))
 
 
 class L2CAPServerThread(Thread):
