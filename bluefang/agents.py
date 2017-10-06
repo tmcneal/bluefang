@@ -14,9 +14,9 @@ AGENT_PATH = "/omnihub/agent" # type: str
 #CAPABILITY = "DisplayYesNo" # This works when pairing with PS3
 #CAPABILITY = "KeyboardOnly" # Doesn't work with Apple TV
 #CAPABILITY = "" # Doesn't work with Apple TV
-#CAPABILITY = "NoInputNoOutput" # Doesn't work with Apple TV
+CAPABILITY = "NoInputNoOutput" # 10/6/17 - Able to pair with Apple TV using this, but HID commands are ignored
 #CAPABILITY = "KeyboardDisplay" # Doesn't work with Apple TV
-CAPABILITY = "DisplayOnly" # This SHOULD work with Apple TV, according to git history
+#CAPABILITY = "DisplayOnly" # 10/6/17 - Not able to pair with Apple TV when using this
 
 # For explanation of in and out signatures, see https://dbus.freedesktop.org/doc/dbus-python/doc/tutorial.html
 
@@ -105,6 +105,14 @@ class BluefangAgent(dbus.service.Object):
         logging.info("RequestPairingConsent")
         return 
 
+    @dbus.service.method(BLUEZ_AGENT, in_signature="s", out_signature="")
+    def ConfirmModeChange(self, mode):
+        print("ConfirmModeChange (%s)" % (mode))
+        authorize = input("Authorize mode change (yes/no): ")
+        if (authorize == "yes"):
+            return
+        raise Exception("Mode change by user")
+    
     @dbus.service.method(BLUEZ_AGENT, in_signature="o", out_signature="")
     def RequestAuthorization(self, device):
         """Always authorize"""
