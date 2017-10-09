@@ -86,6 +86,13 @@ bluetooth.scan(5000)
 device = bluetooth.connect("D0:03:4B:24:57:84")
 ```
 
+# Procedure for connecting to Apple TV
+1. Before starting, make sure device isn't already connected.  'Disconnect' it then 'Unpair Device'.
+2. Go to Settings > Bluetooth on device.  Run 'Discovering and pairing' procedure. You should see bluefang device listed in menu.  If you look at `bluetoothctl` you should see that we're exposing a class of `0x000540`.
+3. Select bluefang device, it should automatically connect.
+4. Disconnect the device via the Apple TV menu.
+5. Run the 'Connecting to trusted device' procedure.  If everything works correctly you should see a 'Keyboard connected' toast display on the Apple TV, and should be able to send commands to ATV via `device.send_command()`.
+
 # HID Descriptor
 ```
 // 78 bytes

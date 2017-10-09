@@ -201,4 +201,4 @@ HID_PROFILE = """
     <uint16 value="0x0320" />
   </attribute>
 </record>
-"""
+""".format(hid_description())
